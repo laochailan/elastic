@@ -17,12 +17,21 @@ func (b *body) render(filename string, w, h int) error {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			img.SetRGBA(x, y, color.RGBA{200, 200, 200, 255})
-			if (x < w/2-b.w/4 || x > w/2+b.w/4) && y > (h+b.h)/2 {
+			if y > (h+b.h)/2 {
 				img.SetRGBA(x, y, color.RGBA{100, 100, 100, 255})
 			}
 		}
 	}
 
+	maxstress := 0.00000001
+	for y := 1; y < b.h-1; y++ {
+		for x := 1; x < b.w-1; x++ {
+			if s := b.stress[y*b.w+x]; s > maxstress {
+				maxstress = s
+			}
+		}
+	}
+	//	println(maxstress)
 	for y := 1; y < b.h-1; y++ {
 		for x := 1; x < b.w-1; x++ {
 			if x == b.w-2 && y == b.h-2 {
@@ -34,9 +43,13 @@ func (b *body) render(filename string, w, h int) error {
 			if nx < 0 || nx >= w || ny < 0 || ny >= h {
 				continue
 			}
+
+			c := color.RGBA{100 + uint8(155*b.stress[y*b.w+x]/maxstress), 120, 150, 255}
 			for i := -1; i <= 1; i++ {
 				for j := -1; j <= 1; j++ {
-					img.SetRGBA(nx+i, ny+j, color.RGBA{100, 120, 150, 255})
+					if b := img.RGBAAt(nx+i, ny+j); b.R <= c.R || b.B == 200 {
+						img.SetRGBA(nx+i, ny+j, c)
+					}
 				}
 			}
 		}
